@@ -9,7 +9,7 @@ env:
   THRESHOLD: "medium"
   MALWARE_SCAN: true
   SECRETS_SCAN: true
-  FAIL_ACTION: false  # Set to false globally
+  FAIL_ACTION: false
   IMAGE_NAME: vulnerable-test-image
 
 jobs:
@@ -57,25 +57,31 @@ jobs:
 
           if [ "$SBOM" = "true" ]; then mv SBOM_* sbom.json; fi
 
-          # Generate reports but don't set fail flags
+          fail_vul=false
+          fail_mal=false
+          fail_sec=false
           [ "${THRESHOLD}" = "any" ] && \
-            [ $(jq '.vulnerabilities.totalVulnCount' result.json) != "0" ] && echo "❌ Vulnerability threshold exceeded" > vulnerabilities || true
+            [ $(jq '.vulnerabilities.totalVulnCount' result.json) != "0" ] && fail_vul=true
 
           [ "${THRESHOLD}" = "critical" ] && \
-            [ $(jq '.vulnerabilities.criticalCount' result.json) != "0" ] && echo "❌ Vulnerability threshold exceeded" > vulnerabilities || true
+            [ $(jq '.vulnerabilities.criticalCount' result.json) != "0" ] && fail_vul=true
 
           [ "${THRESHOLD}" = "high" ] && \
-            [ $(jq '.vulnerabilities.highCount + .vulnerabilities.criticalCount' result.json) != "0" ] && echo "❌ Vulnerability threshold exceeded" > vulnerabilities || true
+            [ $(jq '.vulnerabilities.highCount + .vulnerabilities.criticalCount' result.json) != "0" ] && fail_vul=true
 
           [ "${THRESHOLD}" = "medium" ] && \
-            [ $(jq '.vulnerabilities.mediumCount + .vulnerabilities.highCount + .vulnerabilities.criticalCount' result.json) != "0" ] && echo "❌ Vulnerability threshold exceeded" > vulnerabilities || true
+            [ $(jq '.vulnerabilities.mediumCount + .vulnerabilities.highCount + .vulnerabilities.criticalCount' result.json) != "0" ] && fail_vul=true
 
           [ "${THRESHOLD}" = "low" ] && \
-            [ $(jq '.vulnerabilities.lowCount + .vulnerabilities.mediumCount + .vulnerabilities.highCount + .vulnerabilities.criticalCount' result.json) != "0" ] && echo "❌ Vulnerability threshold exceeded" > vulnerabilities || true
+            [ $(jq '.vulnerabilities.lowCount + .vulnerabilities.mediumCount + .vulnerabilities.highCount + .vulnerabilities.criticalCount' result.json) != "0" ] && fail_vul=true
 
-          [ $(jq '.malware.scanResult' result.json) != "0" ] && echo "❌ Malware detected" > malware || true
+          [ $(jq '.malware.scanResult' result.json) != "0" ] && fail_mal=true
 
-          [ $(jq '.secrets.unmitigatedFindingsCount' result.json) != "0" ] && echo "❌ Secrets found" > secrets || true
+          [ $(jq '.secrets.unmitigatedFindingsCount' result.json) != "0" ] && fail_sec=true
+
+          [ "$fail_vul" = "true" ] && echo "❌ Vulnerability threshold exceeded" > vulnerabilities || true
+          [ "$fail_mal" = "true" ] && echo "❌ Malware detected" > malware || true
+          [ "$fail_sec" = "true" ] && echo "❌ Secrets found" > secrets || true
 
       - name: Store Scan Results
         uses: actions/upload-artifact@v4
@@ -87,12 +93,14 @@ jobs:
             sbom.json
           retention-days: 30
 
-      - name: Display Scan Results
+      - name: Fail Action
         run: |
-          # Just display results without failing
-          if [ -f "malware" ]; then cat malware; fi
-          if [ -f "secrets" ]; then cat secrets; fi
-          if [ -f "vulnerabilities" ]; then cat vulnerabilities; fi
+          if [ "$FAIL_ACTION" = true ]; then
+            if [ -f "malware" ]; then cat malware; fi
+            if [ -f "secrets" ]; then cat secrets; fi
+            if [ -f "vulnerabilities" ]; then cat vulnerabilities; fi
+            if [ -f "malware" ] || [ -f "secrets" ] || [ -f "vulnerabilities" ]; then exit 1; fi
+          fi
 
       - name: Login to GitHub Container Registry
         if: success()
