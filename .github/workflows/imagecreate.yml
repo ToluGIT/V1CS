@@ -1,7 +1,6 @@
 name: Publish Vulnerable Docker Container
 on:
   workflow_dispatch:
-
 jobs:
   publish:
     name: Build and Publish Vulnerable Docker Image
@@ -19,8 +18,12 @@ jobs:
       
       # Step 3: Build the Docker Image
       - name: Build Docker Image
-        run: docker build -t ghcr.io/${{ lower(github.actor) }}/${{ env.IMAGE_NAME }}:latest .
+        run: |
+          IMAGE_OWNER=$(echo "${{ github.actor }}" | tr '[:upper:]' '[:lower:]')
+          docker build -t ghcr.io/${IMAGE_OWNER}/${{ env.IMAGE_NAME }}:latest .
       
       # Step 4: Push the Docker Image to GitHub Packages
       - name: Push Docker Image to GitHub Packages
-        run: docker push ghcr.io/${{ lower(github.actor) }}/${{ env.IMAGE_NAME }}:latest
+        run: |
+          IMAGE_OWNER=$(echo "${{ github.actor }}" | tr '[:upper:]' '[:lower:]')
+          docker push ghcr.io/${IMAGE_OWNER}/${{ env.IMAGE_NAME }}:latest
