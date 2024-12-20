@@ -127,6 +127,10 @@ jobs:
             ghcr.io/${{ env.REPO_OWNER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.description=Vulnerable test image for security scanning
+            org.opencontainers.image.licenses=MIT
 
       - name: Registry Scan
         if: success()
