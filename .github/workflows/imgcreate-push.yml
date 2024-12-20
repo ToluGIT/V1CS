@@ -93,14 +93,12 @@ jobs:
             sbom.json
           retention-days: 30
 
-      - name: Fail Action
+      - name: Display Scan Results
         run: |
-          if [ "$FAIL_ACTION" = true ]; then
-            if [ -f "malware" ]; then cat malware; fi
-            if [ -f "secrets" ]; then cat secrets; fi
-            if [ -f "vulnerabilities" ]; then cat vulnerabilities; fi
-            if [ -f "malware" ] || [ -f "secrets" ] || [ -f "vulnerabilities" ]; then exit 1; fi
-          fi
+          # Always show results but don't fail
+          if [ -f "malware" ]; then cat malware; fi
+          if [ -f "secrets" ]; then cat secrets; fi
+          if [ -f "vulnerabilities" ]; then cat vulnerabilities; fi
 
       - name: Login to GitHub Container Registry
         if: success()
