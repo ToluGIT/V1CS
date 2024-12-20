@@ -145,7 +145,7 @@ jobs:
         if: always()
         uses: slackapi/slack-github-action@v1.24.0
         with:
-          channel-id: 'YOUR_CHANNEL_ID'
+          channel-id: 'C085HTDSFP1'
           payload: |
             {
               "text": "*Security Scan Results for ${{ github.repository }}*",
