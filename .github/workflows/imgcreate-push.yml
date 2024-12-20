@@ -93,6 +93,63 @@ jobs:
             sbom.json
           retention-days: 30
 
+      - name: Prepare Notification Content
+        if: always()
+        run: |
+          echo "Security Scan Results for ${{ github.repository }}" > notification.txt
+          echo "Commit: ${{ github.sha }}" >> notification.txt
+          echo "Workflow: ${{ github.workflow }}" >> notification.txt
+          echo "\nScan Results:" >> notification.txt
+          if [ -f "vulnerabilities" ]; then cat vulnerabilities >> notification.txt; fi
+          if [ -f "malware" ]; then cat malware >> notification.txt; fi
+          if [ -f "secrets" ]; then cat secrets >> notification.txt; fi
+          if [ ! -f "vulnerabilities" ] && [ ! -f "malware" ] && [ ! -f "secrets" ]; then
+            echo "✅ All security checks passed" >> notification.txt
+          fi
+          
+          # Extract key SBOM metrics for notifications
+          if [ -f "sbom.json" ]; then
+            echo "\nSBOM Summary:" >> notification.txt
+            echo "Total Packages: $(jq '.packages | length' sbom.json)" >> notification.txt
+            echo "Dependencies:" >> notification.txt
+            jq -r '.packages[] | select(.type=="library") | .name + " v" + .versionInfo' sbom.json | head -n 5 >> notification.txt
+            if [ "$(jq '.packages | length' sbom.json)" -gt 5 ]; then
+              echo "... and more" >> notification.txt
+            fi
+          fi
+
+      - name: Send Slack Notification
+        if: always()
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          channel-id: ${{ secrets.YOUR_CHANNEL_ID }}
+          slack-message: |
+            *Security Scan Results for ${{ github.repository }}*
+            Commit: ${{ github.sha }}
+            Workflow: ${{ github.workflow }}
+            
+            *Scan Results:*
+            $(cat notification.txt)
+            
+            Full results and SBOM available in GitHub Actions:
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+      - name: Send Email Notification
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: Security Scan Results - ${{ github.repository }}
+          body: file://notification.txt
+          to: your-email@example.com
+          from: GitHub Actions
+          attachments: ./result.json,./sbom.json
+
       - name: Fail Action
         run: |
           if [ "$FAIL_ACTION" = true ]; then
