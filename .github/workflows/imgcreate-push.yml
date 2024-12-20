@@ -107,32 +107,72 @@ jobs:
             echo "✅ All security checks passed" >> notification.txt
           fi
           
-          # Extract key SBOM metrics for notifications
+          # Extract key SBOM metrics for notifications with error handling
           if [ -f "sbom.json" ]; then
             echo "\nSBOM Summary:" >> notification.txt
-            echo "Total Packages: $(jq '.packages | length' sbom.json)" >> notification.txt
-            echo "Dependencies:" >> notification.txt
-            jq -r '.packages[] | select(.type=="library") | .name + " v" + .versionInfo' sbom.json | head -n 5 >> notification.txt
-            if [ "$(jq '.packages | length' sbom.json)" -gt 5 ]; then
-              echo "... and more" >> notification.txt
+            
+            # Safely check if packages exist and get count
+            PACKAGE_COUNT=$(jq 'if .packages then (.packages | length) else 0 end' sbom.json)
+            echo "Total Packages: ${PACKAGE_COUNT}" >> notification.txt
+            
+            if [ "$PACKAGE_COUNT" -gt 0 ]; then
+              echo "Dependencies:" >> notification.txt
+              # Safely extract package information with error handling
+              jq -r '
+                if .packages then
+                  .packages[] | 
+                  select(.type=="library") | 
+                  (
+                    .name + 
+                    " v" + 
+                    (if .versionInfo then .versionInfo else "unknown" end)
+                  )
+                else
+                  empty
+                end' sbom.json | head -n 5 >> notification.txt
+              
+              if [ "$PACKAGE_COUNT" -gt 5 ]; then
+                echo "... and more" >> notification.txt
+              fi
+            else
+              echo "No package information found in SBOM" >> notification.txt
             fi
+          else
+            echo "\nNo SBOM file generated" >> notification.txt
           fi
 
       - name: Send Slack Notification
         if: always()
         uses: slackapi/slack-github-action@v1.24.0
         with:
-          channel-id: ${{ secrets.YOUR_CHANNEL_ID }}
-          slack-message: |
-            *Security Scan Results for ${{ github.repository }}*
-            Commit: ${{ github.sha }}
-            Workflow: ${{ github.workflow }}
-            
-            *Scan Results:*
-            $(cat notification.txt)
-            
-            Full results and SBOM available in GitHub Actions:
-            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          channel-id: 'YOUR_CHANNEL_ID'
+          payload: |
+            {
+              "text": "*Security Scan Results for ${{ github.repository }}*",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Security Scan Results for ${{ github.repository }}*\nCommit: ${{ github.sha }}\nWorkflow: ${{ github.workflow }}"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "```$(cat notification.txt)```"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Full results and SBOM available in GitHub Actions:*\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                  }
+                }
+              ]
+            }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
