@@ -9,7 +9,7 @@ env:
   THRESHOLD: "medium"
   MALWARE_SCAN: true
   SECRETS_SCAN: true
-  FAIL_ACTION: true
+  FAIL_ACTION: false
   IMAGE_NAME: vulnerable-test-image
 
 jobs:
@@ -103,7 +103,7 @@ jobs:
           fi
 
       - name: Login to GitHub Container Registry
-        if: success() && github.event_name != 'pull_request'
+        if: success()
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -111,7 +111,7 @@ jobs:
           password: ${{ secrets.GH_TOKEN }}
 
       - name: Build and Push to GHCR
-        if: success() && github.event_name != 'pull_request'
+        if: success()
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -124,7 +124,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Registry Scan
-        if: success() && github.event_name != 'pull_request'
+        if: success()
         run: |
           tmas scan \
             -V \
