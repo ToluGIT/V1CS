@@ -10,17 +10,20 @@ RUN apt-get update && \
     apt-get install -y \
     curl \
     wget \
-    netcat \
+    netcat-openbsd \
     nmap \
     python3 \
     python3-pip \
-    ssh \
-    vim
+    openssh-server \
+    vim \
+    && rm -rf /var/lib/apt/lists/*
 
 # Installing outdated packages and adding an insecure repository
 # (vulnerability: potential malicious packages)
 RUN curl -fsSL https://deb.nodesource.com/setup_14.x | bash - && \
-    apt-get install -y nodejs
+    apt-get update && \
+    apt-get install -y nodejs && \
+    rm -rf /var/lib/apt/lists/*
 
 # Download EICAR test file (simulated malware)
 RUN curl -OL https://secure.eicar.org/eicarcom2.zip
@@ -37,6 +40,11 @@ COPY . .
 # Exposing multiple ports
 # (vulnerability: unnecessary exposure)
 EXPOSE 22 80 443 3306 5432 27017
+
+# Create SSH directory and generate keys
+RUN mkdir /run/sshd && \
+    ssh-keygen -A && \
+    echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
 
 # Running multiple services in foreground
 # (vulnerability: violates container best practices)
