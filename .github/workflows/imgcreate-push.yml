@@ -142,39 +142,77 @@ jobs:
           fi
 
       - name: Send Slack Notification
-        if: always()
-        uses: slackapi/slack-github-action@v1.24.0
-        with:
-          channel-id: 'C085HTDSFP1'
-          payload: |
-            {
-              "text": "*Security Scan Results for ${{ github.repository }}*",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "*Security Scan Results for ${{ github.repository }}*\nCommit: ${{ github.sha }}\nWorkflow: ${{ github.workflow }}"
-                  }
-                },
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "```$(cat notification.txt)```"
-                  }
-                },
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "*Full results and SBOM available in GitHub Actions:*\n${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-                  }
-                }
-              ]
-            }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+              if: always()
+              run: |
+                NOTIFICATION_CONTENT=$(cat notification.txt)
+                # Read SBOM summary
+                if [ -f "sbom.json" ]; then
+                  VULN_COUNT=$(jq '.vulnerabilities.totalVulnCount // 0' result.json)
+                  CRITICAL_COUNT=$(jq '.vulnerabilities.criticalCount // 0' result.json)
+                  HIGH_COUNT=$(jq '.vulnerabilities.highCount // 0' result.json)
+                  MEDIUM_COUNT=$(jq '.vulnerabilities.mediumCount // 0' result.json)
+                  LOW_COUNT=$(jq '.vulnerabilities.lowCount // 0' result.json)
+                  
+                  SCAN_SUMMARY="*Vulnerability Summary:*
+                  • Critical: ${CRITICAL_COUNT}
+                  • High: ${HIGH_COUNT}
+                  • Medium: ${MEDIUM_COUNT}
+                  • Low: ${LOW_COUNT}
+                  • Total: ${VULN_COUNT}"
+                else
+                  SCAN_SUMMARY="No vulnerability data available"
+                fi
+      
+                curl -X POST -H "Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}" \
+                     -H "Content-Type: application/json" \
+                     https://slack.com/api/chat.postMessage \
+                     -d '{
+                       "channel": "C085HTDSFP1",
+                       "blocks": [
+                         {
+                           "type": "header",
+                           "text": {
+                             "type": "plain_text",
+                             "text": "Security Scan Results"
+                           }
+                         },
+                         {
+                           "type": "section",
+                           "text": {
+                             "type": "mrkdwn",
+                             "text": "*Repository:* ${{ github.repository }}\n*Commit:* ${{ github.sha }}\n*Workflow:* ${{ github.workflow }}"
+                           }
+                         },
+                         {
+                           "type": "section",
+                           "text": {
+                             "type": "mrkdwn",
+                             "text": "'"${SCAN_SUMMARY}"'"
+                           }
+                         },
+                         {
+                           "type": "section",
+                           "text": {
+                             "type": "mrkdwn",
+                             "text": "*Detailed Results:*\n```'"${NOTIFICATION_CONTENT}"'```"
+                           }
+                         },
+                         {
+                           "type": "section",
+                           "text": {
+                             "type": "mrkdwn",
+                             "text": "*Action Required:*\n• Review the scan results\n• Check SBOM for package details\n• Verify any detected vulnerabilities"
+                           }
+                         },
+                         {
+                           "type": "section",
+                           "text": {
+                             "type": "mrkdwn",
+                             "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View full results in GitHub Actions>"
+                           }
+                         }
+                       ]
+                     }'
 
       - name: Send Email Notification
         if: always()
@@ -186,7 +224,7 @@ jobs:
           password: ${{ secrets.EMAIL_PASSWORD }}
           subject: Security Scan Results - ${{ github.repository }}
           body: file://notification.txt
-          to: your-email@example.com
+          to: toluwanimibanji@gmail.com
           from: GitHub Actions
           attachments: ./result.json,./sbom.json
 
