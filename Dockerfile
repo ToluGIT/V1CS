@@ -1,41 +1,44 @@
-FROM python:3.12-slim-bullseye
-LABEL maintainer="research@example.com"
-LABEL org.opencontainers.image.description="Vulnerable image with CVE-2024-0450 - FOR RESEARCH ONLY"
+# Using latest tag (vulnerability: no version pinning)
+FROM ubuntu:latest
 
-ENV DEBIAN_FRONTEND=noninteractive
+# Running as root (vulnerability: privileged container)
+USER root
 
-# Install base packages
-RUN apt-get update && apt-get install -y \
-    apache2 \
+# Installing packages without versions and leaving package lists
+# (vulnerabilities: no version pinning, larger attack surface, cached package lists)
+RUN apt-get update && \
+    apt-get install -y \
     curl \
     wget \
-    gcc \
-    --no-install-recommends
+    netcat \
+    nmap \
+    python3 \
+    python3-pip \
+    ssh \
+    vim
 
-# Create a vulnerable Python server (CVE-2024-0450)
+# Installing outdated packages and adding an insecure repository
+# (vulnerability: potential malicious packages)
+RUN curl -fsSL https://deb.nodesource.com/setup_14.x | bash - && \
+    apt-get install -y nodejs
+
+# Download EICAR test file (simulated malware)
+RUN curl -OL https://secure.eicar.org/eicarcom2.zip
+
+# Creating world-writeable directories
+# (vulnerability: anyone can modify contents)
+RUN mkdir /app && chmod 777 /app
 WORKDIR /app
-COPY vulnerable-app /app
 
-# Create vulnerable Python server code
-RUN echo 'from http.server import HTTPServer, BaseHTTPRequestHandler\n\
-class VulnerableHandler(BaseHTTPRequestHandler):\n\
-    def do_GET(self):\n\
-        self.send_response(200)\n\
-        self.send_header("Content-type", "text/html")\n\
-        self.end_headers()\n\
-        self.wfile.write(b"Vulnerable Server")\n\
-\n\
-def run(server_class=HTTPServer, handler_class=VulnerableHandler):\n\
-    server_address = ("", 8000)\n\
-    httpd = server_class(server_address, handler_class)\n\
-    httpd.serve_forever()\n\
-\n\
-if __name__ == "__main__":\n\
-    run()' > server.py
+# Copy all files including potential secrets
+# (vulnerability: might include .git, .env, etc.)
+COPY . .
 
-# Create test malware simulation
-RUN echo "X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*" > eicar.com
+# Exposing multiple ports
+# (vulnerability: unnecessary exposure)
+EXPOSE 22 80 443 3306 5432 27017
 
-EXPOSE 8000 80
-
-CMD ["python3", "server.py"]
+# Running multiple services in foreground
+# (vulnerability: violates container best practices)
+CMD service ssh start && \
+    python3 -m http.server 80
