@@ -1,0 +1,119 @@
+name: Deploy to K8S
+
+on:
+  workflow_run:
+    workflows: ["docker-image-security-scan-tmas"]
+    types:
+      - completed
+
+env:
+  AWS_REGION:  ${{ secrets.REGION }}  
+  EKS_CLUSTER_NAME: ${{ secrets.VALUES }}  
+  IMAGE_NAME: vulnerable-test-image
+  NAMESPACE: default 
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    
+    steps:
+      - name: Repository Checkout
+        uses: actions/checkout@v4
+
+      - name: Set lowercase repository owner
+        run: |
+          echo "REPO_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.REGION }}  
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Update kubeconfig for EKS
+        run: |
+          aws eks update-kubeconfig --region ${{ secrets.REGION }} --name ${{ secrets.VALUES }}
+          kubectl config current-context
+
+      - name: Generate Deployment Manifest
+        run: |
+          cat << EOF > deployment.yaml
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: ${{ env.IMAGE_NAME }}
+            namespace: ${{ env.NAMESPACE }}
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: ${{ env.IMAGE_NAME }}
+            template:
+              metadata:
+                labels:
+                  app: ${{ env.IMAGE_NAME }}
+              spec:
+                containers:
+                - name: ${{ env.IMAGE_NAME }}
+                  image: ghcr.io/${{ env.REPO_OWNER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+                  imagePullPolicy: Always
+                  ports:
+                  - containerPort: 80
+                  resources:
+                    requests:
+                      cpu: "250m"
+                      memory: "512Mi"
+                    limits:
+                      cpu: "500m"
+                      memory: "1Gi"
+                imagePullSecrets:
+                - name: ghcr-secret
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: ${{ env.IMAGE_NAME }}-service
+            namespace: ${{ env.NAMESPACE }}
+          spec:
+            selector:
+              app: ${{ env.IMAGE_NAME }}
+            ports:
+            - port: 80
+              targetPort: 80
+            type: ClusterIP
+          EOF
+
+      - name: Configure GHCR Pull Secret
+        run: |
+          kubectl create namespace ${{ env.NAMESPACE }} --dry-run=client -o yaml | kubectl apply -f -
+          
+          kubectl create secret docker-registry ghcr-secret \
+            --docker-server=ghcr.io \
+            --docker-username=${{ github.actor }} \
+            --docker-password=${{ secrets.GH_TOKEN }} \
+            --namespace=${{ env.NAMESPACE }} \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy to EKS
+        run: |
+          # Apply deployment
+          kubectl apply -f deployment.yaml
+          
+          # Wait for deployment to be ready
+          kubectl rollout status deployment/${{ env.IMAGE_NAME }} -n ${{ env.NAMESPACE }} --timeout=300s
+
+      - name: Verify Deployment
+        run: |
+          echo "Checking deployment status..."
+          kubectl get deployment ${{ env.IMAGE_NAME }} -n ${{ env.NAMESPACE }} -o wide
+          echo "Checking pods..."
+          kubectl get pods -n ${{ env.NAMESPACE }} -l app=${{ env.IMAGE_NAME }} -o wide
+          echo "Checking service..."
+          kubectl get svc ${{ env.IMAGE_NAME }}-service -n ${{ env.NAMESPACE }} -o wide
