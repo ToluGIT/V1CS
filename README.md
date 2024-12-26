@@ -264,6 +264,6 @@ rm -f terraform.tfstate*
   <p>
     <sub>Built with ❤️ for container security</sub>
     <br>
-    <sub>© 2024 Trend Micro Inc. All rights reserved.</sub>
+    <sub>© 2024 ToluGIT. All rights reserved.</sub>
   </p>
 </div>
