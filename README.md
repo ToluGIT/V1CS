@@ -8,7 +8,7 @@
     <img src="https://img.shields.io/badge/kubernetes-%3E%3D%201.20-blue" alt="Kubernetes Version">
     <img src="https://img.shields.io/badge/EKS-Container%20Security-orange" alt="EKS Container Security">
   </p>
-  <p>A comprehensive demo environment for Trend Vision One Container Security, featuring automation scripts, security testing tools, and CI/CD pipeline integration with Trend Micro Artifact Scanner (TMAS). This repository provides everything needed to set up a secure container environment in AWS EKS.</p>
+  <p>A comprehensive demo environment for Trend Vision One Container Security, featuring automation scripts, security testing tools, and CI/CD pipeline integration with Trend Micro Artifact Scanner (TMAS).</p>
 </div>
 
 <p align="center">
