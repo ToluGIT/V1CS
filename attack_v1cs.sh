@@ -223,8 +223,6 @@ run_files_test() {
     local cmds=(
         "ls -lah /tmp"                                           # Show current files
         "find / -type f -perm -4000 2>/dev/null"                # Find SUID files
-        "touch /tmp/TREND_HAS_BEEN_HERE"                        # Create marker file
-        "ls -lah /tmp"                                          # Show files again
     )
     
     for cmd in "${cmds[@]}"; do
@@ -263,7 +261,7 @@ run_java_anomaly_test() {
 
 run_privileged_test() {
     log "INFO" "Starting privileged container test..."
-    kubectl run "priv-test-${RANDOM}" -n "$NAMESPACE" --rm -i --privileged --image=ubuntu:$UBUNTU_VERSION -- bash -c "echo 'Hi V1CS'"
+    kubectl run "priv-test-${RANDOM}" -n "$NAMESPACE" --rm -i --privileged --image=ubuntu:$UBUNTU_VERSION -- bash -c "echo 'Hi DemoTest'"
 }
 
 run_webshell_test() {
