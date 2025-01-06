@@ -17,9 +17,9 @@ spec:
     spec:
       containers:
       - name: app-container
-        image: toluid/java
+        image: toluid/vulntar:init
         ports:
-        - containerPort: 80
+        - containerPort: 8080
 ---
 apiVersion: v1
 kind: Service

@@ -127,7 +127,7 @@ get_target_url() {
 execute_test() {
     local test_name=$1
     local command=$2
-    local image=${3:-"toluid/a1"}
+    local image=${3:-"toluid/vulnatk"}
     local target_url=$(get_target_url)
     local max_retries=3
     local retry_count=0
@@ -139,7 +139,7 @@ execute_test() {
     while [ $retry_count -lt $max_retries ]; do
         local pod_name="tester-${RANDOM}"
         
-        if [[ "$image" == "toluid/a1" ]]; then
+        if [[ "$image" == "toluid/vulnatk" ]]; then
             log "INFO" "Running test against target: $target_url"
             set +e
             result=$(kubectl run -n "$NAMESPACE" "$pod_name" --rm -i --image "$image" -- "$target_url" "$command" 2>&1) && break

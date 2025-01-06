@@ -17,9 +17,9 @@ spec:
     spec:
       containers:
       - name: app2-container
-        image: toluid/ssl3
+        image: toluid/vulnssl
         ports:
-        - containerPort: 80
+        - containerPort: 8080
 ---
 apiVersion: v1
 kind: Service
@@ -34,5 +34,5 @@ spec:
   type: ClusterIP
   ports:
   - protocol: TCP
-    port: 80
-    targetPort: 80
+    port: 8080
+    targetPort: 8080
