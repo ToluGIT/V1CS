@@ -112,15 +112,17 @@ check_prerequisites() {
     log "INFO" "Prerequisites check completed"
 }
 
-# Function to get target service IP
+# Function to get target service IP and Port
 get_target_url() {
     local url
+    local port
     url=$(kubectl get svc -n "$NAMESPACE" --selector=app="$TARGET_APP" -o jsonpath='{.items[*].spec.clusterIP}')
+    port=$(kubectl get svc -n "$NAMESPACE" --selector=app="$TARGET_APP" -o jsonpath='{.items[*].spec.ports[0].port}')
     if [[ -z "$url" ]]; then
         log "ERROR" "Failed to get target service IP"
         exit 1
     fi
-    echo "http://$url"
+    echo "http://$url:$port"
 }
 
 # Execute test function with retry logic
