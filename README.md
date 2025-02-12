@@ -21,7 +21,7 @@
   <a href="#-cleanup">Cleanup</a>
 </p>
 
-<h2 id="-features">🚀 Features</h2>
+<h2 id="-features">Features</h2>
 
 <ul>
   <li><strong>Infrastructure as Code:</strong> Automated AWS EKS cluster deployment using Terraform</li>
@@ -32,7 +32,7 @@
   <li><strong>Runtime Protection:</strong> Security event simulation and monitoring</li>
 </ul>
 
-<h2 id="-prerequisites">📋 Prerequisites</h2>
+<h2 id="-prerequisites">Prerequisites</h2>
 
 <h3>AWS Configuration</h3>
 <ul>
@@ -56,7 +56,7 @@
   <li>jq (latest version)</li>
 </ul>
 
-<h2 id="-setup-instructions">⚙️ Setup Instructions</h2>
+<h2 id="-setup-instructions">Setup Instructions</h2>
 
 <h3>1. Initial AWS Setup</h3>
 
@@ -165,7 +165,7 @@ on:
   </tr>
 </table>
 
-<h2 id="-scripts">🛠️ Automation Scripts</h2>
+<h2 id="-scripts">Automation Scripts</h2>
 
 <h3>Deployment Script (deploy_v1cs.sh)</h3>
 
@@ -193,7 +193,7 @@ on:
 ./attack_v1cs.sh -n demo -t app-server-2 privesc
 ```
 
-<h2 id="-security">🔒 Security Features</h2>
+<h2 id="-security">Security Features</h2>
 
 <h3>Container Security</h3>
 <ul>
@@ -214,7 +214,7 @@ on:
   </li>
 </ul>
 
-<h2 id="-structure">📁 Repository Structure</h2>
+<h2 id="-structure">Repository Structure</h2>
 
 ```
 .
@@ -229,7 +229,7 @@ on:
 └── install_tmas.cli.sh       # TMAS setup
 ```
 
-<h2 id="-cleanup">🧹 Cleanup</h2>
+<h2 id="-cleanup">Cleanup</h2>
 
 ```bash
 # 1. Remove Container Security
@@ -244,7 +244,7 @@ rm -rf .terraform
 rm -f terraform.tfstate*
 ```
 
-<h2>⚠️ Important Notes</h2>
+<h2>Important Notes</h2>
 
 <ul>
   <li>All resources deploy to us-east-1 (N. Virginia)</li>
@@ -253,17 +253,15 @@ rm -f terraform.tfstate*
   <li>Use in isolated test environments only</li>
 </ul>
 
-<h2>💬 Contribute</h2>
+<h2>Contribute</h2>
 
 <ul>
-  <li>🐛 Issues: Create a GitHub issue</li>
+  <li>Issues: Create a GitHub issue</li>
 </ul>
 
 <div align="center">
   <br>
   <p>
-    <sub>Built with ❤️ for container security</sub>
-    <br>
     <sub>© 2024 ToluGIT. All rights reserved.</sub>
   </p>
 </div>
