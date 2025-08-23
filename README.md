@@ -1,14 +1,6 @@
 <div align="center">
   <h1>Trend Vision One - Container Security Demo Environment</h1>
-  <p>
-    <a href="https://github.com/ToluGIT/V1CS/actions">
-      <img src="https://github.com/ToluGIT/V1CS/workflows/docker-image-security-scan-tmas/badge.svg" alt="CI Status">
-    </a>
-    <img src="https://img.shields.io/badge/terraform-%3E%3D%201.0-blue" alt="Terraform Version">
-    <img src="https://img.shields.io/badge/kubernetes-%3E%3D%201.20-blue" alt="Kubernetes Version">
-    <img src="https://img.shields.io/badge/EKS-Container%20Security-orange" alt="EKS Container Security">
-  </p>
-  <p>A comprehensive demo environment for Trend Vision One Container Security, featuring automation scripts, security testing tools, and CI/CD pipeline integration with Trend Micro Artifact Scanner (TMAS).</p>
+  <p>A demo environment for Trend Vision One Container Security, featuring automation scripts, security testing tools, and CI/CD pipeline integration with Trend Micro Artifact Scanner (TMAS).</p>
 </div>
 
 <p align="center">
@@ -28,7 +20,7 @@
   <li><strong>Security Automation:</strong> Streamlined Trend Vision One Container Security deployment</li>
   <li><strong>CI/CD Integration:</strong> GitHub Actions workflows with TMAS for container scanning</li>
   <li><strong>Security Testing:</strong> Pre-configured applications and testing tools</li>
-  <li><strong>Comprehensive Scanning:</strong> Vulnerability, malware, and secrets detection</li>
+  <li><strong>Scanning:</strong> Vulnerability, malware, and secrets detection</li>
   <li><strong>Runtime Protection:</strong> Security event simulation and monitoring</li>
 </ul>
 
