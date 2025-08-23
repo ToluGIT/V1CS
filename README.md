@@ -214,20 +214,6 @@ on:
   </li>
 </ul>
 
-<h2 id="-structure">Repository Structure</h2>
-
-```
-.
-├── .github/workflows/          # CI/CD workflows
-│   ├── imgcreate-push.yaml    # TMAS scanning
-│   └── prod-deploy.yaml       # EKS deployment
-├── calico/                    # Network policies
-├── Terraform/                 # Infrastructure
-├── app-server-[1,2].yaml     # Demo apps
-├── attack_v1cs.sh            # Security tests
-├── deploy_v1cs.sh            # Deployment
-└── install_tmas.cli.sh       # TMAS setup
-```
 
 <h2 id="-cleanup">Cleanup</h2>
 
@@ -253,15 +239,3 @@ rm -f terraform.tfstate*
   <li>Use in isolated test environments only</li>
 </ul>
 
-<h2>Contribute</h2>
-
-<ul>
-  <li>Issues: Create a GitHub issue</li>
-</ul>
-
-<div align="center">
-  <br>
-  <p>
-    <sub>© 2024 ToluGIT. All rights reserved.</sub>
-  </p>
-</div>
