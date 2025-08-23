@@ -85,7 +85,7 @@ terraform apply   # Deploy infrastructure</code></pre>
 2. Deploy security components:
 <pre><code>./deploy_v1cs.sh</code></pre>
 
-<h2 id="-workflow">🔄 GitHub Workflow Integration</h2>
+<h2 id="-workflow">GitHub Workflow Integration</h2>
 
 <h3>Workflow Architecture</h3>
 
