@@ -107,14 +107,5 @@ Always cleanup resources after the demo:
 terraform destroy -auto-approve
 ```
 
-## Support
-
-For issues or questions:
-
-1. Check the [detailed walkthrough](containersecurity-walk%20through.md) first
-2. Review AWS CloudShell logs for deployment issues
-3. Verify all prerequisites are properly configured
-
----
 
 **Ready to start?** → [Open the Complete Walkthrough](containersecurity-walk%20through.md)
