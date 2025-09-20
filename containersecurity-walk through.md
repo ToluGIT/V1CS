@@ -1,5 +1,3 @@
-> NOTE: This walkthrough has been restructured into modular guides under `docs/`. Start here: `README.md`.
-
 Welcome to the walkthrough guide for Trend Vision One - Container Security! We will walk you
 through the necessary steps to get started with the platform and deploy a demo environment in
 your AWS account. Whether you are new to container security or have prior experience, this guide

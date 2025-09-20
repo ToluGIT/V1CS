@@ -42,7 +42,7 @@ terraform apply -auto-approve
 # 5. Follow the complete walkthrough for Vision One setup
 ```
 
-## Project Structure
+
 
 ```
 V1CS/
