@@ -85,18 +85,7 @@ This process involves creating the following
 Since you have configured the AWS CLI you can directly create it from your CLI using the commands
 below
 
-```bash
-# Create S3 bucket for Terraform state
-aws s3api create-bucket --bucket terraform-state-bucket --region us-east-1
-
-# Create DynamoDB table for state locking
-aws dynamodb create-table \
-    --table-name terraform-state-locks \
-    --attribute-definitions AttributeName=LockID,AttributeType=S \
-    --key-schema AttributeName=LockID,KeyType=HASH \
-    --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5 \
-    --region us-east-1
-```
+![S3 Bucket and DynamoDB Creation](images/Screenshot%202025-09-20%20at%2012.23.01.png)
 *Figure 2: AWS CLI command - Provision S3 bucket and DynamoDB*
 Note:
 
@@ -111,18 +100,8 @@ Login to AWS Console > Navigate to DynamoDB > Verify the DynamoDB table.
 These values are necessary to configure the _backend.tf_ file, which plays a crucial role in setting
 up AWS EKS environment.
 
-```hcl
-terraform {
-  backend "s3" {
-    bucket         = "terraform-state-bucket"
-    key            = "terraform.tfstate"
-    region         = "us-east-1"
-    dynamodb_table = "terraform-state-locks"
-    encrypt        = true
-  }
-}
-```
-*Figure 3: Sample of Backend.tf*
+![Backend.tf Configuration](images/Screenshot%202025-09-20%20at%2012.23.32.png)
+*Figure 3: Sample of backend.tf*
 For more information on [Terraform Backend Block.](https://docs.aws.amazon.com/cli/latest/reference/configure/)
 
 Note: The terraform files needed for the provisioning can be found in the Github repo within the
@@ -147,31 +126,29 @@ terraform apply -auto-approve
 ```
 *Figure 4: Terraform Infra Provision*
 
-![Terraform Init](images/Screenshot%202025-09-20%20at%2012.22.51.png)
-![Terraform Plan Output](images/Screenshot%202025-09-20%20at%2012.23.01.png)
+![Terraform Commands](images/Screenshot%202025-09-20%20at%2012.23.41.png)
+*Figure 4: Terraform Commands (init, plan, apply)*
+
+![Terraform Plan Output](images/Screenshot%202025-09-20%20at%2012.23.52.png)
 *Figure 5: Terraform plan output*
 
 Sit back and let's wait for the resources to be created – it takes approximately 15 minutes
 
-![Terraform Apply Output](images/Screenshot%202025-09-20%20at%2012.23.32.png)
+![Terraform Apply Output](images/Screenshotat12.23.59.png)
 *Figure 6: Terraform apply output*
-- Login into your AWS console, to check that the EKS resources have been provisioned
-    successfully
-       - Navigate to EKS > Verify the EKS cluster.
-       - Navigate to EC2 > Check the worker nodes.
-       - Navigate to VPC > Confirm the networking setup.
+- Login into your AWS console, to check that the EKS resources have been provisioned successfully
+- Navigate to EKS > Verify the EKS cluster.
+- Navigate to EC2 > Check the worker nodes.
+- Navigate to VPC > Confirm the networking setup.
 
-![EKS Cluster Provisioned](images/Screenshot%202025-09-20%20at%2012.23.41.png)
+![EKS Cluster Provisioned](images/Screenshot%202025-09-20%20at%2012.24.07.png)
 *Figure 7: EKS Cluster provisioned*
 Note: eksctl command link utility can also be used to provision an EKS cluster in minutes, refer to the
 official documentation for more [information](https://eksctl.io/).
 
 The reason for using Terraform over eksctl is its greater flexibility and modularity, allowing
 comprehensive management of EKS and its dependencies, such as VPC and IAM, in a unified
-workflow. While eksctl is ideal for quick setups in a demo environment, Terraform’ s reusability,
-
-
-consistency, and scalability make it a better choice for long-term infrastructure management and
+workflow. While eksctl is ideal for quick setups in a demo environment, Terraform’ s reusability, consistency, and scalability make it a better choice for long-term infrastructure management and
 future enhancements.
 
 ## Deploy Trend Vision One Container Security on the Provisioned AWS
@@ -198,7 +175,7 @@ Note: If Container Security hasn’t been provisioned, you will see the option t
 - **For the demo** , all rules will be added to the ruleset for demonstration purposes. Feel
     free to pause and review the existing rules available to be added to a ruleset
 
-![Runtime Security Ruleset](images/Screenshot%202025-09-20%20at%2012.23.52.png)
+![Runtime Security Ruleset](images/Screenshot%202025-09-20%20at%2012.24.28.png)
 *Figure 8: Runtime Security Ruleset*
 - **Create a Container Protection policy:**
     Container Protection policies include deployment, continuous, and runtime rules that can be
@@ -236,7 +213,7 @@ Context About the Different Lifecycle Stages:
 For more more [information](https://docs.trendmicro.com/en-us/documentation/article/trend-vision-one-container-security).
 
 
-![Container Protection Policy](images/Screenshot%202025-09-20%20at%2012.23.59.png)
+![Container Protection Policy](images/Screenshot%202025-09-20%20at%2012.24.51.png)
 *Figure 9: Container Protection Policy*
 - Add Kubernetes cluster to Trend Vision One Container Security
     - **Navigate** to **Cloud Security > Container Security > Container Inventory**.
@@ -286,7 +263,7 @@ ls -la
 ```
 *Figure 10: Move files into V1CS directory*
 
-![CloudShell File Organization](images/Screenshot%202025-09-20%20at%2012.24.07.png)
+![Move files into V1CS directory](images/Screenshot%202025-09-20%20at%2012.25.16.png)
 - Scripts and Use Cases
     - deploy_v1cs.sh – Deployment Script:
        This script automates the deployment process for Trend Vision One
@@ -334,7 +311,7 @@ aws eks update-kubeconfig --region us-east-1 --name clustermake
     functionality and available options:
 
 
-![Deploy Script Help](images/Screenshot%202025-09-20%20at%2012.24.28.png)
+![Deploy Script Help](images/Screenshot%202025-09-20%20at%2012.25.52.png)
 *Figure 13: Deploy Script*
 - Upon successful deployment, the script will display the deployed resources and end
     with a message: **"Deployment completed successfully."**
@@ -353,18 +330,19 @@ You have successfully completed the Container Security deployment. Next, proceed
 to execute the attack scenarios to trigger the rulesets and review the generated
 events.
 ```
-![AWS CloudShell](images/Screenshot%202025-09-20%20at%2012.24.51.png)
+![AWS CloudShell](images/Screenshot%202025-09-20%20at%2012.26.07.png)
 *Figure 14: AWS CloudShell*
-![AWS CloudShell Files Upload](images/Screenshot%202025-09-20%20at%2012.25.16.png)
+![AWS CloudShell Files Upload](images/Screenshot12.26.22.png)
 *Figure 15: AWS CloudShell Files Upload*
 
 
 
-![Deployment Successful](images/Screenshot%202025-09-20%20at%2012.25.25.png)
+![alt text](<images/Screenshot 2025-09-20 at 12.26.55.png>)
+
+![alt text](<images/Screenshot 2025-09-20 at 12.27.03.png>)
 *Figure 16: Deployment successful*
 
-![Deployment Successful - Vision One](images/Screenshot%202025-09-20%20at%2012.25.33.png)
-*Figure 17: Deployment successful - Vision One*
+
 
 
 ## Trigger Runtime Events in Trend Vision One - Container Security
@@ -383,8 +361,8 @@ Protection Policy, which is now enforced on the demo EKS cluster.
 - Before running the attack_v1cs.sh script, use the -h argument to view its full
     functionality and available options:
 
-![Attack Script Help](images/Screenshot%202025-09-20%20at%2012.25.52.png)
-*Figure 18: Attack Script*
+![Deploy Script Help](images/Screenshot%202025-09-20%20at%2012.25.52.png)
+*Figure 18: Deploy Script Help Options*
 ```
 The -h option displays the available commands, security tests, and examples of how to
 execute the script. In this demo environment, there are two vulnerable containers, and you
@@ -394,45 +372,37 @@ can choose which container to target for the attack.
     options to view detailed execution and run all tests for an evaluation. Using the
     command:
 
-```bash
-./attack_v1cs.sh --verbose --target app-server-1
-```
-*Figure 19: Attack Script command syntax*
-```
-Note: app-server- 2 can only tests for Security Tests Commands section while
-app-server- 1 tests for all.
-```
+
+![alt text](<images/Screenshot 2025-09-20 at 12.27.36.png>)
+
+![alt text](<images/Screenshot 2025-09-20 at 12.28.02.png>) 
+
+![alt text](<images/Screenshot 2025-09-20 at 12.28.08.png>)
+
 ```
 Once all tests are done a message which highlights “Full system test completed” is
 displayed.
 ```
 
 
-![Attack Scenario Completed](images/Screenshot%202025-09-20%20at%2012.26.07.png)
-*Figure 20: Attack Scenario completed*
+![AWS Console Services](images/Screenshot%202025-09-20%20at%2012.26.07.png)
+*Figure 20: AWS Console Services Navigation*
+
 2. Runtime Detection Event Analysis
-    - **Navigate** to the **Trend Vision One Console > Cloud Security > Container Security >**
-       **Container Protection** to review detections in the **Events** tab.
-    - Check for events generated in both the **Deployment/Continuous** and **Runtime** tabs.
-    - You’ll notice events are categorized by policy, cluster, namespace, operation, and
-       resource type (Kind).
-    - Each event details specific policy violations, such as containers running with privilege
-       escalation rights or those permitted to run as root.
-    - Navigate to the **Runtime** tab to review the events generated during the runtime
-       stage of the container's lifecycle.
-    - Several runtime detection events were generated, including one based on the rule
-       **"(T1613)Peirates tool detected in container."** To Provide context Peirates is a
-       Kubernetes penetration testing tool used by attackers to escalate privileges and
-       pivot within a Kubernetes cluster. And another rule **"(T1552)Search Private Keys or**
-       **Passwords”**
-       You’ll observe information such as the exact command ran in the container, parent
-       process, rule name mapped to the MITRE ATT&CK TTP, namespace, image digest,
-       and container ID—all of which can be utilized for forensic analysis.
 
+- **Navigate** to the **Trend Vision One Console > Cloud Security > Container Security >**
+ 
+  **Container Protection** to review detections in the **Events** tab.
 
+- Check for events generated in both the **Deployment/Continuous** and **Runtime** tabs.
 
-![Investigate Container Events](images/Screenshot%202025-09-20%20at%2012.26.22.png)
-*Figure 21: Investigate Container Events*
+- You’ll notice events are categorized by policy, cluster, namespace, operation, and resource type (Kind).
+
+- Each event details specific policy violations, such as containers running with privilege escalation rights or those permitted to run as root.
+
+- Navigate to the **Runtime** tab to review the events generated during the runtime stage of the container's lifecycle.
+
+- Several runtime detection events were generated, including one based on the rule  **"(T1613)Peirates tool detected in container."** To Provide context Peirates is a Kubernetes penetration testing tool used by attackers to escalate privileges and pivot within a Kubernetes cluster. And another rule **"(T1552)Search Private Keys or**  **Passwords”** You’ll observe information such as the exact command ran in the container, parent process, rule name mapped to the MITRE ATT&CK TTP, namespace, image digest, and container ID—all of which can be utilized for forensic analysis.
 
 
 You have successfully triggered runtime events and reviewed the generated detections. Next,
@@ -446,34 +416,39 @@ Workbench alerts, and Attack Surface Discovery details. This provides valuable i
 container security and effectively analysing container-related events.
 
 - Using Search App – Container Telemetry
-    Use the Trend Vision One Search app to analyze container telemetry and gain context about
-    the simulated attack, including its impact and related activities.
-       - **Navigate** to the **Trend Vision One Console** > **XDR Threat Investigation** > **Search**.
-       - Set the search method data source to **"Container Activity Data"** and use the search
-          query clusterName with the value clustermake to view search results.
-       - Examine one of the results, such as an attack involving the command rm -rf
-          /var/log which deletes system and application log files—a tactic often tagged as
-          **Defense Evasion**.
-       - Try additional [container activity data](https://docs.trendmicro.com/en-us/documentation/article/trend-vision-one-container-activity-data) search queries to discover more about the
-          capabilities of the search application.
+
+Use the Trend Vision One Search app to analyze container telemetry and gain context about the simulated attack, including its impact and related activities.
+
+- **Navigate** to the **Trend Vision One Console** > **XDR Threat Investigation** > **Search**.
+- Set the search method data source to **"Container Activity Data"** and use the search
+    query clusterName with the value clustermake to view search results.
+- Examine one of the results, such as an attack involving the command rm -rf
+    /var/log which deletes system and application log files—a tactic often tagged as
+    **Defense Evasion**.
+- Try additional [container activity data](https://docs.trendmicro.com/en-us/documentation/article/trend-vision-one-container-activity-data) search queries to discover more about the
+    capabilities of the search application.
 
 
-![Search App - Telemetry](images/Screenshot%202025-09-20%20at%2012.26.55.png)
-*Figure 22: Search App - Telemetry*
+![Container Security Demo Deploy](images/SEARCHv1.png)
+![alt text](images/SEARCHv2.png)
+![alt text](images/SEARCHv3.png)
+
+*Figure 21: Container Security Search*
+
 - Using Observed Attack Techniques App – Container Telemetry
     Use the **Observed Attack Techniques** app in Trend Vision One Container Security to analyze
     detected events. While not all events escalate into Workbench insights or alerts, the
     granular data provided by predefined or custom detection filters can help you investigate
     Workbench insights and evaluate individual detections for a deeper understanding of
     security threats.
-       - **Navigate** to the **Trend Vision One Console** > **XDR Threat Investigation** > **Observed**
-          **Attack Techniques**.
-       - Set the event severity to **Critical** , **High** , **Medium** and **Detection time** within the time
-          when the attack script was executed and click **Apply**.
-       - You’ll see a couple of Observed Attack Techniques, expand one of the high-severity
-          entries to explore detailed information.
-       - Review details like processcmd, cluster name, container ID, and other data
-          to gather context.
+- **Navigate** to the **Trend Vision One Console** > **XDR Threat Investigation** > **Observed**
+    **Attack Techniques**.
+- Set the event severity to **Critical** , **High** , **Medium** and **Detection time** within the time
+    when the attack script was executed and click **Apply**.
+- You’ll see a couple of Observed Attack Techniques, expand one of the high-severity
+    entries to explore detailed information.
+- Review details like processcmd, cluster name, container ID, and other data
+    to gather context.
 
 
 
@@ -481,29 +456,24 @@ container security and effectively analysing container-related events.
     Use the **Workbench** to analyze high-priority alerts and correlated events for containerized
     environments. Focus on **Workbench Insights** for critical investigations or explore **All Alerts**
     for root cause and impact analysis.
-       - **Navigate** to the **Trend Vision One Console** > **XDR Threat Investigation** >
-          **Workbench**.
-       - Click the **Workbench Insights** tab to view high-priority container security events with
-          actionable insights.
-       - Switch to the **Workbench Alerts** tab to review container security alerts and select an
-          alert to investigate its details and impact.
-       - For the alert **"Privilege Escalation in Container"** , review the summary, highlights,
-          observable graph, and available response actions.
-       - Take time to explore and review other alerts for additional insights, if desired.
+- **Navigate** to the **Trend Vision One Console** > **XDR Threat Investigation** >
+    **Workbench**.
+- Click the **Workbench Insights** tab to view high-priority container security events with
+    actionable insights.
+- Switch to the **Workbench Alerts** tab to review container security alerts and select an
+    alert to investigate its details and impact.
+- For the alert **"Privilege Escalation in Container"** , review the summary, highlights,
+    observable graph, and available response actions.
+- Take time to explore and review other alerts for additional insights, if desired.
 
+![alt text](images/WBHv1.png)
+![alt text](images/WBHv2.png)
+![alt text](images/WBHv3.png)
+![alt text](images/WBHv4.png)
+![alt text](images/WBHv5.png)
 
+*Figure 22: V1CS Workbench*
 
-![Workbench Alert](images/Screenshot%202025-09-20%20at%2012.27.03.png)
-*Figure 23: Workbench Alert*
-
-![Attack Surface Discovery - Cloud Assets](images/Screenshot%202025-09-20%20at%2012.27.16.png)
-*Figure 24: Attack Surface Discovery - Cloud Assets*
-
-![K8s Cluster Risk Assessment](images/Screenshot%202025-09-20%20at%2012.27.27.png)
-*Figure 25: K8s Cluster Risk Assessment*
-You have successfully reviewed the XDR alerts and explored how Trend Vision One XDR enhances
-context for container security. Next, let’s proceed to a real-life CI/CD pipeline scenario using **Trend
-Micro Artifact Scanner (TMAS)** to scan container images before they are pushed to production.
 
 ## Integrate Container Image Scanning into CI/CD Pipelines with Trend
 
@@ -551,38 +521,33 @@ detection capabilities.
     deployment for successful operation to production
 - For the pipelines to work effectively some secrets and variables are required
 
-**Type Name Description
-Secret** TMAS_API_KEY^ API key for Trend Micro Artifact Scanner (TMAS).^
-**Secret** AWS_ACCESS_KEY_ID^ AWS access key ID for authenticating with AWS services.^
-**Secret** AWS_SECRET_ACCESS_KEY^ AWS secret access key for authenticating with AWS
-services.
-**Secret** REGION^ AWS region for deploying resources.^
-**Secret** GH_TOKEN^ GitHub token for authenticating with GitHub Container
-Registry (GHCR).
-**Secret** EMAIL_USERNAME^ Email address used for sending notifications.^
-**Secret** EMAIL_PASSWORD^ Password or app-specific key (recommended) for the
-email address.
-**Secret** SLACK_BOT_TOKEN^ Token for authenticating and posting messages to a Slack
-channel.
-**Secret** VALUES^ Name of the Amazon EKS cluster being used
-(clustermake).
-**Value** IMAGE_NAME^ Name of the container image being built and deployed
-(vulnerable-test-image).
-**Value** NAMESPACE^ Kubernetes namespace for deploying the container
-(default).
-**Value** THRESHOLD^ Security threshold level for the scan (medium). The
-threshold can be modified based on the required values.
-For more details on the [threshold levels](https://docs.trendmicro.com/en-us/documentation/article/trend-vision-one-override-vulnerability-findings).
-**Value** MALWARE_SCAN^ Flag to enable malware scanning (true).^
-**Value** SECRETS_SCAN^ Flag to enable secrets scanning (true).^
-**Value** FAIL_ACTION^ Determines if the pipeline fails on detection issues
-(false).
-**Value** REGION^ Vision One Region (Default = us-east-^1 ).^
-_Table 1 : Secrets and Values Used in GitHub Workflows_
+![alt text](images/Git1.png)
 
+| Type | Name | Description |
+|------|------|-------------|
+| **Secret** | TMAS_API_KEY | API key for Trend Micro Artifact Scanner (TMAS) |
+| **Secret** | AWS_ACCESS_KEY_ID | AWS access key ID for authenticating with AWS services |
+| **Secret** | AWS_SECRET_ACCESS_KEY | AWS secret access key for authenticating with AWS services |
+| **Secret** | REGION | AWS region for deploying resources |
+| **Secret** | GH_TOKEN | GitHub token for authenticating with GitHub Container Registry (GHCR) |
+| **Secret** | EMAIL_USERNAME | Email address used for sending notifications |
+| **Secret** | EMAIL_PASSWORD | Password or app-specific key (recommended) for the email address |
+| **Secret** | SLACK_BOT_TOKEN | Token for authenticating and posting messages to a Slack channel |
+| **Secret** | VALUES | Name of the Amazon EKS cluster being used (clustermake) |
+| **Value** | IMAGE_NAME | Name of the container image being built and deployed (vulnerable-test-image) |
+| **Value** | NAMESPACE | Kubernetes namespace for deploying the container (default) |
+| **Value** | THRESHOLD | Security threshold level for the scan (medium). The threshold can be modified based on the required values. For more details on the [threshold levels](https://docs.trendmicro.com/en-us/documentation/article/trend-vision-one-override-vulnerability-findings) |
+| **Value** | MALWARE_SCAN | Flag to enable malware scanning (true) |
+| **Value** | SECRETS_SCAN | Flag to enable secrets scanning (true) |
+| **Value** | FAIL_ACTION | Determines if the pipeline fails on detection issues (false) |
+| **Value** | REGION | Vision One Region (Default = us-east-1) |
 
-![GitHub Actions](images/Screenshot%202025-09-20%20at%2012.27.36.png)
-*Figure 26: GitHub Actions*
+*Table 1: Secrets and Values Used in GitHub Workflows*
+
+![alt text](images/Git3.png)
+
+![Attack Script Command](images/Screenshot%202025-09-20%20at%2012.27.36.png)
+*Figure 26: Attack Script Command Execution*
 Now that you understand how the CI/CD pipeline functions, let’s move on to integrating Trend Micro
 Artifact Scanner (TMAS) into the pipeline and executing it.
 
@@ -600,11 +565,9 @@ Artifact Scanner (TMAS) into the pipeline and executing it.
        according to your needs.
 
 
-![Artifact Scanner Setup Guide](images/Screenshot%202025-09-20%20at%2012.28.02.png)
-*Figure 27: Artifact Scanner Setup Guide*
+![TMAS API Key Generation](images/Git2.png)
+*Figure 27: TMAS API Key Generation Guide*
 
-![GitHub Secrets](images/Screenshot%202025-09-20%20at%2012.28.08.png)
-*Figure 28: GitHub Secrets*
 
 - Run Github Workflow (CI pipeline)
     It’s time to trigger the workflow imgcreate-push.yaml to build the container image and
@@ -622,14 +585,10 @@ Artifact Scanner (TMAS) into the pipeline and executing it.
           are generated and sent via the configured notification channels, such as Slack and
           Gmail.
 
-![CI Pipeline fails on TMAS scan](images/Screenshot%202025-09-20%20at%2012.28.32.png)
-*Figure 29: CI Pipeline fails on TMAS scan*
+![alt text](images/git4.png) 
 
-![Email Notification - Scan results](images/Screenshot%202025-09-20%20at%2012.28.59.png)
-*Figure 30: Email Notification - Scan results*
+![alt text](images/git5.png)
 
-![Slack Notification - Scan results](images/Screenshot%202025-09-20%20at%2012.29.30.png)
-*Figure 31: Slack Notification - Scan results*
 
 - Bypassing Github Workflow (CI Pipeline) to Publish Vulnerable Image (CI/CD Pipeline)
     Now you can observe the Trend Micro Artifact Scanner blocking the vulnerable image from
@@ -653,9 +612,6 @@ env:
 - Go to the **Deployment** tab and update the **Artifact Scanner Results** section with the
     required changes.
 
-
-![Artifact Scanner Result change](images/Screenshot%202025-09-20%20at%2012.29.37.png)
-*Figure 33: Artifact Scanner Result change*
 - Re-run the **docker-image-security-scan-tmas** workflow.
 - Notice that the **docker-image-security-scan-tmas** workflow completes successfully,
     and the image is published, triggering the **Deploy to K8S** workflow automatically.
@@ -670,24 +626,18 @@ env:
     vulnerabilities, malware, and secrets (note: the vulnerable image built contains no
     embedded secrets).
 
+![alt text](<images/Screenshot 2025-09-20 at 12.32.23.png>) 
+![alt text](<images/Screenshot 2025-09-20 at 12.36.41.png>) 
+![alt text](<images/Screenshot 2025-09-20 at 12.36.48.png>)
+ ![alt text](<images/Screenshot 2025-09-20 at 12.36.53.png>) 
+![alt text](<images/Screenshot 2025-09-20 at 12.36.59.png>) 
+![alt text](<images/Screenshot 2025-09-20 at 12.37.03.png>) 
+![alt text](<images/Screenshot 2025-09-20 at 12.37.07.png>)
 
-![docker-image-security-scan-tmas workflow successful](images/Screenshot%202025-09-20%20at%2012.30.03.png)
-*Figure 34: docker-image-security-scan-tmas workflow successful*
+*Attack Telemetry Details and Defense Evasion*
 
-![Deploy to K8S workflow failed](images/Screenshot%202025-09-20%20at%2012.30.28.png)
-*Figure 35: Deploy to K8S workflow failed*
 
-![Deployment blocked event](images/Screenshot%202025-09-20%20at%2012.30.41.png)
-*Figure 36: Deployment blocked event*
 
-![TMAS Result - Image](images/Screenshot%202025-09-20%20at%2012.30.50.png)
-*Figure 37: TMAS Result - Image*
-
-![TMAS Result - Artifact Vulnerabilities](images/Screenshot%202025-09-20%20at%2012.30.57.png)
-*Figure 38: TMAS Result - Artifact Vulnerabilities*
-
-![TMAS Result - Artifact Malware](images/Screenshot%202025-09-20%20at%2012.31.19.png)
-*Figure 39: TMAS Result - Artifact Malware*
 You’ve successfully simulated a real-world CI/CD pipeline scenario with Trend Micro Artifact
 Scanner, scanning images before they are pushed to production. The scanner halted deployment
 when the set criteria were not met and sent notifications to alert stakeholders, demonstrating
@@ -716,9 +666,6 @@ You will now proceed to clean up the demo environment by following these steps:
 - Once the process is complete, an output message will appear stating: **"Clean**
     **completed successfully."**
 
-
-![deploy_v1cs.sh cleanup successful](images/Screenshot%202025-09-20%20at%2012.31.27.png)
-*Figure 41: deploy_v1cs.sh cleanup successful*
 2. Cleanup using terraform destroy
     - Navigate back to your IDE where terraform apply was previously executed to
        provision the AWS EKS environment.
@@ -727,7 +674,7 @@ You will now proceed to clean up the demo environment by following these steps:
 ```bash
 terraform destroy -auto-approve
 ```
-*Figure 42: The cleanup - terraform destroy*
+*The cleanup - terraform destroy*
 ```
 Ensure this command is executed within the same folder containing the Terraform
 configuration files and where terraform apply was originally run.
@@ -742,13 +689,15 @@ configuration files and where terraform apply was originally run.
     be displayed to confirm the successful cleanup of resources.
 
 
-![Terraform cleanup successful](images/Screenshot%202025-09-20%20at%2012.31.36.png)
-*Figure 43: Terraform cleanup successful*
+![alt text](<images/Screenshot 2025-09-20 at 12.37.20.png>) 
+![alt text](<images/Screenshot 2025-09-20 at 12.37.33.png>)
+![alt text](<images/Screenshot 2025-09-20 at 12.37.44.png>)
+![alt text](<images/Screenshot 2025-09-20 at 12.37.54.png>) 
+![alt text](<images/Screenshot 2025-09-20 at 12.38.00.png>)
 ### Conclusion
 
 Congratulations on completing the Trend Vision One Container Security implementation! You've
 successfully navigated through deploying an EKS environment, configuring container security
 protections, simulating attacks, and implementing secure CI/CD practices - equipping you with the
 hands-on experience to secure your containerized environments.
-
 
