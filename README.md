@@ -1,233 +1,135 @@
-<div align="center">
-  <h1>Trend Vision One - Container Security Demo Environment</h1>
-  <p>A demo environment for Trend Vision One Container Security, featuring automation scripts, security testing tools, and CI/CD pipeline integration with Trend Micro Artifact Scanner (TMAS).</p>
-</div>
+# V1CS - Trend Vision One Container Security Demo
 
-<p align="center">
-  <a href="#-features">Features</a> •
-  <a href="#-prerequisites">Prerequisites</a> •
-  <a href="#-setup-instructions">Setup</a> •
-  <a href="#-workflow">Workflow</a> •
-  <a href="#-scripts">Scripts</a> •
-  <a href="#-security">Security</a> •
-  <a href="#-cleanup">Cleanup</a>
-</p>
+> **[Complete Walkthrough Guide](containersecurity-walk%20through.md)** - Start here for the full step-by-step experience
 
-<h2 id="-features">Features</h2>
+A comprehensive demonstration environment for Trend Vision One Container Security on AWS EKS, including infrastructure deployment, security policy configuration, runtime protection, and CI/CD integration with Trend Micro Artifact Scanner (TMAS).
 
-<ul>
-  <li><strong>Infrastructure as Code:</strong> Automated AWS EKS cluster deployment using Terraform</li>
-  <li><strong>Security Automation:</strong> Streamlined Trend Vision One Container Security deployment</li>
-  <li><strong>CI/CD Integration:</strong> GitHub Actions workflows with TMAS for container scanning</li>
-  <li><strong>Security Testing:</strong> Pre-configured applications and testing tools</li>
-  <li><strong>Scanning:</strong> Vulnerability, malware, and secrets detection</li>
-  <li><strong>Runtime Protection:</strong> Security event simulation and monitoring</li>
-</ul>
+## What You'll Learn
 
-<h2 id="-prerequisites">Prerequisites</h2>
+- **Infrastructure as Code** - Deploy secure EKS clusters with Terraform
+- **Container Security Policies** - Configure deployment, continuous, and runtime protection
+- **Threat Detection** - Simulate attacks and analyze security events with MITRE ATT&CK mapping
+- **XDR Investigation** - Leverage Trend Vision One for comprehensive threat hunting
+- **CI/CD Security** - Integrate TMAS for automated container image scanning
+- **DevSecOps** - Implement security gates in deployment pipelines
 
-<h3>AWS Configuration</h3>
-<ul>
-  <li>AWS Account with administrative permissions</li>
-  <li>AWS CLI v2.0+ configured with credentials</li>
-  <li>Region: North Virginia (us-east-1)</li>
-</ul>
+## Prerequisites
 
-<h3>Trend Vision One Setup</h3>
-<ul>
-  <li>Active Trend Vision One account</li>
-  <li>Container Security module enabled</li>
-  <li>TMAS API key configured</li>
-</ul>
+- **AWS Account** - Administrative permissions for EKS deployment in us-east-1 region
+- **Trend Vision One Account** - Container Security module enabled
+- **GitHub Account** - For CI/CD pipeline demonstrations with TMAS
+- **Local Tools**: Terraform, AWS CLI, Git
 
-<h3>Development Tools</h3>
-<ul>
-  <li>Terraform ≥ 1.0</li>
-  <li>kubectl (compatible with EKS 1.20+)</li>
-  <li>Helm ≥ 3.0</li>
-  <li>jq (latest version)</li>
-</ul>
+## Quick Start
 
-<h2 id="-setup-instructions">Setup Instructions</h2>
+```bash
+# 1. Clone and prepare
+git clone https://github.com/ToluGIT/V1CS.git
+cd V1CS
 
-<h3>1. Initial AWS Setup</h3>
-
-<pre><code># Configure AWS CLI
+# 2. Configure AWS CLI
 aws configure
 
-# Create Terraform state bucket
-aws s3 mb s3://your-terraform-state-bucket \
-  --region us-east-1
+# 3. Set up Terraform backend (see walkthrough for details)
+aws s3api create-bucket --bucket your-terraform-state-bucket --region us-east-1
 
-# Create state locking table
-aws dynamodb create-table \
-  --table-name terraform-state-locks \
-  --attribute-definitions AttributeName=LockID,AttributeType=S \
-  --key-schema AttributeName=LockID,KeyType=HASH \
-  --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 \
-  --region us-east-1</code></pre>
-
-<h3>2. EKS Deployment</h3>
-
-<pre><code># Initialize and deploy EKS
-cd Terraform
+# 4. Deploy infrastructure
+cd terraform/
 terraform init
-terraform plan    # Review changes
-terraform apply   # Deploy infrastructure</code></pre>
+terraform plan  
+terraform apply -auto-approve
 
-<h3>3. Container Security Setup</h3>
-
-1. In Trend Vision One Console:
-   - Create Runtime Security Ruleset
-   - Configure Container Protection Policy
-   - Download `overrides.yaml`
-
-2. Deploy security components:
-<pre><code>./deploy_v1cs.sh</code></pre>
-
-<h2 id="-workflow">GitHub Workflow Integration</h2>
-
-<h3>Workflow Architecture</h3>
-
-```mermaid
-graph LR
-    A[Build Image] --> B[TMAS Scan]
-    B --> C{Security Checks}
-    C -->|Pass| D[Push to Registry]
-    D --> E[Deploy to EKS]
-    C -->|Fail| F[Notify Team]
+# 5. Follow the complete walkthrough for Vision One setup
 ```
 
-<h3>1. Security Scanning Workflow</h3>
+## Project Structure
 
-<pre><code>name: docker-image-security-scan-tmas
-
-on:
-  workflow_dispatch:  # Manual trigger
-  push:
-    branches: [ main ]  # Auto trigger on main
-
-env:
-  TMAS_API_KEY: ${{ secrets.TMAS_API_KEY }}
-  THRESHOLD: "medium"
-  MALWARE_SCAN: true
-  SECRETS_SCAN: true</code></pre>
-
-<h3>2. Deployment Workflow</h3>
-
-<pre><code>name: Deploy to K8S
-
-on:
-  workflow_run:
-    workflows: ["docker-image-security-scan-tmas"]
-    types: [completed]</code></pre>
-
-<h3>Required Secrets</h3>
-
-<table>
-  <tr>
-    <th>Secret Name</th>
-    <th>Description</th>
-    <th>Required</th>
-  </tr>
-  <tr>
-    <td>TMAS_API_KEY</td>
-    <td>Trend Micro Artifact Scanner API key</td>
-    <td>Yes</td>
-  </tr>
-  <tr>
-    <td>AWS_ACCESS_KEY_ID</td>
-    <td>AWS access key for EKS access</td>
-    <td>Yes</td>
-  </tr>
-  <tr>
-    <td>AWS_SECRET_ACCESS_KEY</td>
-    <td>AWS secret key for EKS access</td>
-    <td>Yes</td>
-  </tr>
-  <tr>
-    <td>GH_TOKEN</td>
-    <td>GitHub token for GHCR access</td>
-    <td>Yes</td>
-  </tr>
-  <tr>
-    <td>SLACK_BOT_TOKEN</td>
-    <td>Slack notifications (optional)</td>
-    <td>No</td>
-  </tr>
-</table>
-
-<h2 id="-scripts">Automation Scripts</h2>
-
-<h3>Deployment Script (deploy_v1cs.sh)</h3>
-
-```bash
-# Full deployment
-./deploy_v1cs.sh
-
-# Remove components
-./deploy_v1cs.sh cleanup
-
-# Check status
-./deploy_v1cs.sh verify
+```
+V1CS/
+├── terraform/                           # AWS EKS infrastructure
+├── scripts/
+│   ├── deploy_v1cs.sh                  # Container Security deployment automation
+│   ├── attack_v1cs.sh                  # Attack simulation scenarios
+│   └── install_tmas_cli.sh             # TMAS CLI installation
+├── .github/workflows/
+│   ├── imgcreate-push.yaml             # CI pipeline with TMAS scanning
+│   └── prod-deploy.yaml               # CD pipeline to EKS
+├── images/                             # Documentation screenshots
+├── containersecurity-walk through.md   # Complete step-by-step guide
+└── README.md                          # This file
 ```
 
-<h3>Testing Script (attack_v1cs.sh)</h3>
+## Documentation
+
+### [Complete Walkthrough](containersecurity-walk%20through.md)
+**Start here for the full experience** - Detailed step-by-step guide covering:
+
+1. **AWS EKS Deployment** - Terraform infrastructure setup
+2. **Vision One Configuration** - Security policies and rulesets  
+3. **Container Security Deployment** - Automated installation on EKS
+4. **Attack Simulation** - Runtime protection demonstrations
+5. **XDR Investigation** - Threat analysis and forensics
+6. **CI/CD Integration** - TMAS pipeline implementation
+7. **Cleanup Procedures** - Complete environment teardown
+
+### Key Demo Scenarios
+
+| Scenario | Description | Duration |
+|----------|-------------|----------|
+| **Infrastructure Setup** | Deploy EKS with Terraform | ~15 mins |
+| **Security Deployment** | Install and configure V1CS | ~10 mins |
+| **Attack Simulation** | Runtime protection demos | ~15 mins |
+| **XDR Investigation** | Threat analysis workflows | ~20 mins |
+| **CI/CD Integration** | TMAS pipeline testing | ~30 mins |
+
+## Key Components
+
+### Security Features
+- **Runtime Protection** - Behavioral monitoring with MITRE ATT&CK mapping
+- **Vulnerability Scanning** - Image analysis with threshold-based policies  
+- **Malware Detection** - Real-time container protection
+- **CI/CD Security Gates** - Automated validation in deployment pipelines
+
+### Automation Scripts
 
 ```bash
-# View all options
-./attack_v1cs.sh -h
+# Container Security deployment
+./deploy_v1cs.sh                    # Deploy V1CS to EKS
+./deploy_v1cs.sh --cleanup         # Remove all components
 
-# Run full test suite
-./attack_v1cs.sh -tv app-server-1 full
-
-# Run specific test
-./attack_v1cs.sh -n demo -t app-server-2 privesc
+# Attack simulation  
+./attack_v1cs.sh -h                # View all options
+./attack_v1cs.sh --verbose --target app-server-1  # Run full test suite
 ```
 
-<h2 id="-security">Security Features</h2>
+## Important Notes
 
-<h3>Container Security</h3>
-<ul>
-  <li><strong>Runtime Protection:</strong>
-    <ul>
-      <li>Process monitoring</li>
-      <li>File system protection</li>
-      <li>Network security</li>
-    </ul>
-  </li>
-  <li><strong>Image Scanning:</strong>
-    <ul>
-      <li>Vulnerability assessment</li>
-      <li>Malware detection</li>
-      <li>Secrets scanning</li>
-      <li>SBOM generation</li>
-    </ul>
-  </li>
-</ul>
+**Region**: All resources deploy to **us-east-1** - maintain consistency across activities
 
+**Costs**: This demo provisions AWS resources that incur charges - remember to cleanup
 
-<h2 id="-cleanup">Cleanup</h2>
+**Security**: Uses intentionally vulnerable containers for demonstration - not for production
+
+## Cleanup
+
+Always cleanup resources after the demo:
 
 ```bash
-# 1. Remove Container Security
-./deploy_v1cs.sh cleanup
+# 1. Cleanup V1CS deployment
+./deploy_v1cs.sh --cleanup
 
-# 2. Destroy AWS infrastructure
-cd Terraform
+# 2. Destroy AWS infrastructure  
 terraform destroy -auto-approve
-
-# 3. Clean local files
-rm -rf .terraform
-rm -f terraform.tfstate*
 ```
 
-<h2>Important Notes</h2>
+## Support
 
-<ul>
-  <li>All resources deploy to us-east-1 (N. Virginia)</li>
-  <li>Contains intentionally vulnerable components for testing</li>
-  <li>Includes EICAR test file for malware detection</li>
-  <li>Use in isolated test environments only</li>
-</ul>
+For issues or questions:
 
+1. Check the [detailed walkthrough](containersecurity-walk%20through.md) first
+2. Review AWS CloudShell logs for deployment issues
+3. Verify all prerequisites are properly configured
+
+---
+
+**Ready to start?** → [Open the Complete Walkthrough](containersecurity-walk%20through.md)
