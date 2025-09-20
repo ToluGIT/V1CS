@@ -44,21 +44,6 @@ terraform apply -auto-approve
 
 
 
-```
-V1CS/
-├── terraform/                           # AWS EKS infrastructure
-├── scripts/
-│   ├── deploy_v1cs.sh                  # Container Security deployment automation
-│   ├── attack_v1cs.sh                  # Attack simulation scenarios
-│   └── install_tmas_cli.sh             # TMAS CLI installation
-├── .github/workflows/
-│   ├── imgcreate-push.yaml             # CI pipeline with TMAS scanning
-│   └── prod-deploy.yaml               # CD pipeline to EKS
-├── images/                             # Documentation screenshots
-├── containersecurity-walk through.md   # Complete step-by-step guide
-└── README.md                          # This file
-```
-
 ## Documentation
 
 ### [Complete Walkthrough](containersecurity-walk%20through.md)
